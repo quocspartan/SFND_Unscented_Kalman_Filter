@@ -54,6 +54,19 @@ UKF::UKF() {
    * TODO: Complete the initialization. See ukf.h for other member properties.
    * Hint: one or more values initialized above might be wildly off...
    */
+  
+  is_initialized_ = false; 
+  // state dimension
+  n_x_ = 5; 
+  // augmented state dimension
+  n_aug_ = n_x_ + 2; 
+  // predicted sigma points matrix
+  Xsig_pred_ = Eigen::MatrixXd::Zero(n_x_, 2*n_aug_ + 1);
+  // weight of sigma points
+  weights_ = Eigen::VectorXd::Zero(2*n_aug_ + 1); 
+  // sigma point spreading param
+  lambda_ = 3.0 - n_x_; 
+  
 }
 
 UKF::~UKF() {}

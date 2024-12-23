@@ -150,13 +150,15 @@ void UKF::Prediction(double delta_t) {
    */
   VectorXd x_aug = Eigen::VectorXd::Zero(n_aug_);
   x_aug.head(n_x_) = x_; 
-  std::cout << "DEBUG: x_aug: " << x_aug << std::endl; 
+  if(DEBUG_EN)
+    std::cout << "DEBUG: x_aug: " << x_aug << std::endl; 
 
   MatrixXd P_aug = Eigen::MatrixXd::Zero(n_aug_, n_aug_);
   P_aug.topLeftCorner(n_x_, n_x_) = P_;
   P_aug(n_x_, n_x_) = std_a_ * std_a_;
   P_aug(n_x_+1, n_x_+1) = std_yawdd_ * std_yawdd_;
-  std::cout << "DEBUG: P_aug: " << P_aug << std::endl; 
+  if(DEBUG_EN)
+    std::cout << "DEBUG: P_aug: " << P_aug << std::endl; 
 
   // create the square root matrix used for generating sigmas
   MatrixXd A = P_aug.llt().matrixL();
@@ -167,7 +169,8 @@ void UKF::Prediction(double delta_t) {
     X_sig_aug.col(i+1) = x_aug + sqrt(lambda_+n_aug_)*A.col(i);
     X_sig_aug.col(i+1+n_aug_) = x_aug - sqrt(lambda_+n_aug_)*A.col(i);
   }
-  std::cout << "DEBUG: X_sig_aug: " << X_sig_aug << std::endl; 
+  if(DEBUG_EN)
+    std::cout << "DEBUG: X_sig_aug: " << X_sig_aug << std::endl; 
   
   // sigma points prediction
   Xsig_pred_ = Eigen::MatrixXd::Zero(n_x_, 2 * n_aug_ + 1);
@@ -208,25 +211,27 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(2,i) = v_p;
     Xsig_pred_(3,i) = yaw_p;
     Xsig_pred_(4,i) = yawd_p;
-  }  
-  std::cout << "DEBUG: Xsig_pred_: " << Xsig_pred_ << std::endl; 
+  }
+  if(DEBUG_EN)
+    std::cout << "DEBUG: Xsig_pred_: " << Xsig_pred_ << std::endl; 
   
   // compute predicted mean
   x_.fill(0.0);
-  for (auto i = 0; i < 2 * n_aug_ + 1; i++)
+  for (auto i = 0; i < n_sigma_; i++)
     x_ += weights_(i) * Xsig_pred_.col(i);
 
   AngleNorm(x_(3));
   // compute predicted covariance
   P_.fill(0.0);
-  for (int i = 0; i < 2 * n_aug_ + 1; ++i) { 
+  for (auto i = 0; i < n_sigma_; ++i) { 
     // difference between each predicted sigma point and their mean
     VectorXd x_diff = Xsig_pred_.col(i) - x_;
     // angle normalization to -pi to pi    
     AngleNorm(x_diff(3));
     P_ += weights_(i) * x_diff * x_diff.transpose() ;
   }
-  std::cout << "DEBUG: P_: " << P_ << std::endl; 
+  if(DEBUG_EN)
+    std::cout << "DEBUG: P_: " << P_ << std::endl; 
 }
 
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
@@ -290,7 +295,7 @@ void UKF::UpdateStateAndCovariance(MatrixXd &S, MatrixXd &Z, const MeasurementPa
 
     // predict state covariance matrix & calculate cross correlation matrix
     Z.colwise() -= z_pred;
-    for (int i = 0; i < n_sigma_; i++) {
+    for (auto i = 0; i < n_sigma_; i++) {
         S  += weights_(i) * Z.col(i) * Z.col(i).transpose();
         Tc += weights_(i) * (Xsig_pred_.col(i) - x_) * Z.col(i).transpose();
     }

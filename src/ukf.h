@@ -43,6 +43,12 @@ class UKF {
   void UpdateRadar(MeasurementPackage meas_package);
 
   /**
+   * Updates the state and the state covariance matrix 
+   */
+  void UpdateStateAndCovariance(Eigen::MatrixXd &S, Eigen::MatrixXd &Z, const MeasurementPackage &meas_package);
+
+
+  /**
    * Angle normalization to -pi to pi */
   void AngleNorm(double &angle);
 
@@ -97,8 +103,17 @@ class UKF {
   // Augmented state dimension
   int n_aug_;
 
+  // Number of sigma points
+  int n_sigma_;
+
   // Sigma point spreading parameter
   double lambda_;
+
+  // radar measurement dimension
+  int n_ldr_;
+
+  // radar measurement dimension
+  int n_rdr_;
 };
 
 #endif  // UKF_H
